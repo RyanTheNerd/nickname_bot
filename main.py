@@ -1,10 +1,9 @@
 import discord
 import config
 import random
+import logging
+import database as db
 
-# pool is a dictionary filled with keys of user id's pointing to a 
-# corresponding pool of nicknames
-pool = {}
 
 name = "billy"
 
@@ -21,21 +20,29 @@ async def on_ready():
 # on_message runs every time the bot recieves a message from any channel
 @client.event
 async def on_message(message):
-        user, function, nickname = parse_request(message); 
-        await change_nickname(message.author)
+    author = message.author
+    nickname = db.get_nickname(author.id, author.display_name)
+    try:
+        await client.change_nickname(author, nickname)
+    except:
+        print(f"I can't change {author.display_name}'s nickname")
 
-        if function == "/addname":
-            print(f"\tAdding Name:")
-            print(f"New nickname for {user}: {nickname}")
-            add_nickname(user, nickname)
+    user, function, nickname = parse_request(message)
 
-        elif function == "/rmname":
-            print(f"Removing nickname {nickname} from {user.display_name}'s bank")
-            remove_nickname(user, nickname)
-            
-        elif function == "/lsname":
-            print("\tListing Names:")
-            await list_names(user, message.channel)
+    if function == "/addname":
+        print(f"\tAdding Name for {user}: {nickname}")
+        db.add_nickname(user.id, nickname)
+
+    elif function == "/rmname":
+        print(f"Removing Name {nickname} from {user.display_name}'s bank")
+        db.remove_nickname(user.id, nickname)
+        
+    elif function == "/lsname":
+        print("\tListing Names:")
+        await client.send_message(message.channel, db.list_names(user.id))
+    
+    elif function == "/cls":
+        print("Deleting previous messages")
 
 
 # accepts a message object
@@ -45,19 +52,17 @@ def parse_request(message):
     user = None
     function = None
     nickname = None
-    init_pool(author)
 
     if message.content.startswith("/"):
         args = message.content.split(" ")
         function = args[0]
-        print("Author:",message.author.display_name)
+        print(f"Author: {message.author.display_name}, ID: {message.author.id}")
 
         if len(args) > 1:
             user_id = ''.join(i for i in args[1] if i.isdigit())
             print(f"User id: {user_id}")
             user = message.server.get_member(user_id)
 
-            init_pool(user)
             nickname = " ".join(args[2:])
 
         if user == None:
@@ -68,36 +73,24 @@ def parse_request(message):
     return user, function, nickname
 
 
-async def change_nickname(author):
-    nickname = pool[author.id][random.randrange(len(pool[author.id]))]
+async def change_nickname(author, nickname):
     try:
         print(f"\tChanging {author.display_name}'s nickname to {nickname}")
-        await client.change_nickname(author, nickname)
     except discord.errors.Forbidden:
-        print("Error: Forbidden")
+        print("Forbidden")
     return nickname 
 
-def remove_nickname(user, nickname):
-    try:
-        pool[user.id].pop(int(nickname)-1)
-    except:
-        print("Index of nickname is out of range lol")
+#def remove_nickname(user, nickname):
+#    db.remove_nickname(user.id, nickname)
+#
+#
+#def add_nickname(user, nickname):
+#    db.add_nickname(user.id, nickname)
+#
+#
+#async def list_names(user, channel):
+#    await client.send_message(channel, db.list_names(user.id))
 
-def add_nickname(author, nickname):
-    pool[author.id].append(nickname)
-
-
-async def list_names(user, channel):
-    names = pool[user.id]
-    names = ", ".join(names)
-    print(names)
-    await client.send_message(channel, names)
-
-def init_pool(author):
-    if author.id not in pool:
-        print(f"Adding {author.display_name} to the pool.")
-        pool[author.id] = []
-        pool[author.id].append(author.display_name)
 
 # This starts the bot
 client.run(config.token)
