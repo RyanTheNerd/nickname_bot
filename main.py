@@ -21,6 +21,11 @@ async def on_ready():
 @client.event
 async def on_message(message):
     author = message.author
+    for string in ["god said", "god told me"]:
+        if string in message.content.lower():
+            await client.change_nickname(message.server.me, "GOD")
+            await client.send_message(message.channel, "I NEVER SAID THAT")
+            await client.change_nickname(client.user, previous_name)
     nickname = db.get_nickname(author.id, author.display_name)
     try:
         await client.change_nickname(author, nickname)
@@ -31,7 +36,9 @@ async def on_message(message):
 
     if function == "/addname":
         print(f"\tAdding Name for {user}: {nickname}")
-        db.add_nickname(user.id, nickname)
+        response = db.add_nickname(user.id, nickname)
+        if len(response) != 0:
+            await client.send_message(message.channel, response)
 
     elif function == "/rmname":
         print(f"Removing Name {nickname} from {user.display_name}'s bank")
@@ -39,19 +46,34 @@ async def on_message(message):
         
     elif function == "/lsname":
         print("\tListing Names:")
-        await client.send_message(message.channel, db.list_names(user.id))
+        await client.send_message(message.channel, db.pprint_names(user.id))
     
     elif function == "/cls":
         print("Deleting previous messages")
+
+    elif function == "/help":
+        help_message = (
+                "\t\tRandom nickname bot\n\n"
+                "Commands:\n"
+                "\t`/addname potato` - adds the name `potato` to your pool\n"
+                "\t`/addname @Xtguio kek` - adds the name `kek` to Xtguio's pool\n"
+                "\t`/rmname potato` - remove the name `potato` from your pool\n"
+                "\t`/lsname` - list all current names in your pool\n"
+                "You get the idea"
+        )
+        await client.send_message(message.channel, help_message)
 
 
 # accepts a message object
 # returns user, function, and nickname
 def parse_request(message):
+    previous_name = client.user.display_name;
     author = message.author
     user = None
     function = None
     nickname = None
+
+
 
     if message.content.startswith("/"):
         args = message.content.split(" ")
@@ -80,17 +102,7 @@ async def change_nickname(author, nickname):
         print("Forbidden")
     return nickname 
 
-#def remove_nickname(user, nickname):
-#    db.remove_nickname(user.id, nickname)
-#
-#
-#def add_nickname(user, nickname):
-#    db.add_nickname(user.id, nickname)
-#
-#
-#async def list_names(user, channel):
-#    await client.send_message(channel, db.list_names(user.id))
-
-
 # This starts the bot
 client.run(config.token)
+
+

@@ -17,46 +17,49 @@ def get_nickname(id_num, original):
         nicknames.append(nickname["nickname"])
     nickname = False
     if len(nicknames) < 2:
-        return original
+        if len(nicknames) == 0:
+            return original
+        return nicknames[0]
     while nickname == False or nickname == original:
         nickname = nicknames[randrange(len(nicknames))]
     return nickname 
 
 def remove_nickname(id_num, nickname):
+    if nickname.isdigit():
+        nickname = int(nickname)
+        nickname = list_names(id_num)[nickname-1]
     nicknames = db.nicknames.remove({"nickname": nickname})
 
 def add_nickname(id_num, nickname):
+    nickname = nickname.strip()
+    if len(nickname) > 32:
+        return f"Error: nickname '{nickname}' is longer than 32 characters!"
+    elif len(nickname) < 1:
+        return f"Error: no nickname given. Try `/addname name`"
     matches = db.nicknames.find({'id': id_num, 'nickname': nickname})
-    if matches.count() == 1:
-        return False
+    if matches.count() > 0:
+        return f"Error: nickname '{nickname}' already exists!"
     post_data = {
         "nickname": nickname,
         "id": id_num,
     }
     db.nicknames.insert_one(post_data)
-    return True
+    return ""
 
 
 def list_names(id_num):
     nicknames = db.nicknames.find({'id': id_num})
-    name_list = ""
+    name_list = []
 
     for index, nickname in enumerate(nicknames):
-        name_list += f"{index + 1}. {nickname['nickname']}\n"
+        name_list.append(nickname['nickname'])
 
     return name_list
 
+def pprint_names(id_num):
+    names = list_names(id_num)
+    name_list = ""
+    for index in range(len((names))):
+        name_list += f"{index + 1}. {names[index]}\n"
 
-# Test code:
-#add_nickname(509528, "billy")
-#print(get_nickname(509528))
-#add_nickname(509528, "suzy")
-#add_nickname(509528, "sally")
-#
-#print(list_names(509528))
-#
-#remove_nickname(509528, "billy")
-#remove_nickname(509528, "suzy")
-#remove_nickname(509528, "sally")
-#
-
+    return name_list
