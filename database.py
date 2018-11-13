@@ -44,7 +44,7 @@ def add_nickname(id_num, nickname):
         "id": id_num,
     }
     db.nicknames.insert_one(post_data)
-    return ""
+    return f"Successfully added nickname '{nickname}' to <@{id_num}>'s user bank."
 
 
 def list_names(id_num):

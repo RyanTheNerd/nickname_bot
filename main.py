@@ -2,6 +2,8 @@ import discord
 import config
 import random
 import logging
+import asyncio
+import datetime as dt
 import database as db
 
 
@@ -13,24 +15,24 @@ client = discord.Client()
 # on_ready function is only ran when the bot is first started
 @client.event
 async def on_ready():
-    print('Logged in as ' + client.user.name + ' (ID:' + client.user.id + ')')
-    print('Connected to ' + str(len(client.servers)) + ' servers')
-    print('Connected to ' + str(len(set(client.get_all_members()))) + ' users')
+    member_count = len(set(client.get_all_members()))
+    server_count = len(client.servers)
+    print(f"Logged in as {client.user.name} (ID: {client.user.id})")
+    print(f"Connected to {server_count} servers")
+    print(f"Connected to {member_count} users")
+    game = discord.Game(name=f"Confusing {member_count} users on {server_count} servers")
+    await client.change_presence(game=game)
 
 # on_message runs every time the bot recieves a message from any channel
 @client.event
 async def on_message(message):
     author = message.author
-    for string in ["god said", "god told me"]:
-        if string in message.content.lower():
-            await client.change_nickname(message.server.me, "GOD")
-            await client.send_message(message.channel, "I NEVER SAID THAT")
-            await client.change_nickname(client.user, previous_name)
     nickname = db.get_nickname(author.id, author.display_name)
-    try:
-        await client.change_nickname(author, nickname)
-    except:
-        print(f"I can't change {author.display_name}'s nickname")
+    client_message = None
+    time = None
+    await god_parse(message)
+    await palindrome_parse(message)
+    await change_nickname(author, nickname)
 
     user, function, nickname = parse_request(message)
 
@@ -38,19 +40,22 @@ async def on_message(message):
         print(f"\tAdding Name for {user}: {nickname}")
         response = db.add_nickname(user.id, nickname)
         if len(response) != 0:
-            await client.send_message(message.channel, response)
+            client_message = await client.send_message(message.channel, response)
+            time = 2
 
     elif function == "/rmname":
         print(f"Removing Name {nickname} from {user.display_name}'s bank")
         db.remove_nickname(user.id, nickname)
+        client_message = await client.send_message(message.channel, 
+                f"Removing Name {nickname} from {user.display_name}'s bank")
+        time = 2
         
     elif function == "/lsname":
         print("\tListing Names:")
-        await client.send_message(message.channel, db.pprint_names(user.id))
+        client_message = await client.send_message(message.channel, 
+                db.pprint_names(user.id))
+        time = 7
     
-    elif function == "/cls":
-        print("Deleting previous messages")
-
     elif function == "/help":
         help_message = (
                 "\t\tRandom nickname bot\n\n"
@@ -62,18 +67,24 @@ async def on_message(message):
                 "You get the idea"
         )
         await client.send_message(message.channel, help_message)
+    elif function in ["/cls", "/clr"]:
+        print(f"Clearing messages for channel '{str(message.channel)}'")
+        client_message = await client.send_message(message.channel, 
+                await clear_messages(message.channel))
+
+    if client_message != None:
+        print(f"Client message: {client_message}")
+        await fade_messages([client_message, message], time)
 
 
 # accepts a message object
-# returns user, function, and nickname
+# returns user object, function name, and nickname
 def parse_request(message):
     previous_name = client.user.display_name;
     author = message.author
     user = None
     function = None
     nickname = None
-
-
 
     if message.content.startswith("/"):
         args = message.content.split(" ")
@@ -97,12 +108,49 @@ def parse_request(message):
 
 async def change_nickname(author, nickname):
     try:
-        print(f"\tChanging {author.display_name}'s nickname to {nickname}")
-    except discord.errors.Forbidden:
-        print("Forbidden")
-    return nickname 
+        await client.change_nickname(author, nickname)
+    except:
+        print(f"I can't change {author.display_name}'s nickname")
 
-# This starts the bot
+async def god_parse(message):
+    for string in ["god said", "god told me"]:
+        if string in message.content.lower():
+            await client.change_nickname(message.server.me, "GOD")
+            await client.send_message(message.channel, "I NEVER SAID THAT")
+            await client.change_nickname(client.user, previous_name)
+
+async def fade_messages(messages, time):
+    await asyncio.sleep(7)
+    for message in messages:
+        try:
+            await client.delete_message(message)
+        except:
+            continue
+
+async def clear_messages(channel):
+    def predicate(message):
+        if(message.author == client.user):
+            return True
+        for start in ["/lsname", "/rmname", "/addname", "/cls", "clr", "/help"]:
+            if message.content.startswith(start):
+                return True
+        return False
+
+    time = dt.datetime.utcnow() - dt.timedelta(days=5)
+    removed = len(await client.purge_from(channel, check=predicate, after=time))
+    return (f"{removed} messages successfully removed.")
+async def palindrome_parse(message):
+    if message.author != client.user:
+        for word in message.content.split(" "):
+            if len(word) > 2:
+                lower = word.lower()
+                if lower == lower[::-1]:
+                    id_num = message.author.id
+                    await client.send_message(message.channel, 
+                            f"{word} is a palindrome! Wow!")
+                    return
+
+    
+
+# This starts the bot 
 client.run(config.token)
-
-
