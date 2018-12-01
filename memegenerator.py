@@ -30,7 +30,7 @@ import os
 
 def make_meme(topString, bottomString, filename):
 
-	img = Image.open(filename)
+	img = Image.open(f"resources/{filename}.jpg")
 	imageSize = img.size
 
 	# find biggest font size that works
@@ -67,8 +67,6 @@ def make_meme(topString, bottomString, filename):
 	draw.text(topTextPosition, topString, (255,255,255), font=font)
 	draw.text(bottomTextPosition, bottomString, (255,255,255), font=font)
 
-	img.save("temp/alex_jones.jpg")
+	img.save(f"temp/{filename}.jpg")
 
-def alex_jones(top, bottom):
-    make_meme(top, bottom, "resources/alex_jones.jpg")
 

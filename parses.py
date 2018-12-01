@@ -1,12 +1,5 @@
-import re
-def yum_yum(message):
-    # John contributed anal, butt, and butts
-    yum = ['dick', 'dicks', 'penis', 'butthole', 'ass', 'anal', 'butt', 'butts'] 
-    if message.lower() in yum:
-        return {"message": "Yum yum"}
-    for name in ['jacob', 'dennis', 'john', 'ryan', 'isaak']:
-        if message.lower() == name:
-            return {"message": f"{message} is a degenerate"}
+from explicit_parses import yum_yum
+
 def god_parse(message):
     for string in ["god said", "god told me"]:
         if string in message.lower():

@@ -7,8 +7,11 @@ import asyncio
 import datetime as dt
 import database as db
 
-from memegenerator import alex_jones
+from memegenerator import make_meme
 from parses import extra_parses
+
+MEMEGEN_PARSES = ["alexjones", "hackerman"]
+PREFIX = "/"
 
 # This creates an instance of the bot
 client = discord.Client()
@@ -39,27 +42,27 @@ async def on_message(message):
     user, function, nickname = parse_request(message)
     await extra_parses(client, message)
 
-    if function == "/addname":
+    if function == "addname":
         print(f"\tAdding Name for {user}: {nickname}")
         response = db.add_nickname(user.id, nickname)
         if len(response) != 0:
             client_message = await client.send_message(message.channel, response)
             time = 2
 
-    elif function == "/rmname":
+    elif function == "rmname":
         print(f"Removing Name {nickname} from {user.display_name}'s bank")
         db.remove_nickname(user.id, nickname)
         client_message = await client.send_message(message.channel, 
                 f"Removing Name {nickname} from {user.display_name}'s bank")
         time = 2
         
-    elif function == "/lsname":
+    elif function == "lsname":
         print("\tListing Names:")
         client_message = await client.send_message(message.channel, 
                 db.pprint_names(user.id))
         time = 7
     
-    elif function == "/help":
+    elif function == "help":
         help_message = (
                 "\t\tRandom nickname bot\n\n"
                 "Commands:\n"
@@ -70,24 +73,26 @@ async def on_message(message):
                 "You get the idea"
         )
         await client.send_message(message.channel, help_message)
-    elif function in ["/cls", "/clr"]:
+    elif function in ["cls", "clr"]:
         print(f"Clearing messages for channel '{str(message.channel)}'")
         client_message = await client.send_message(message.channel, 
                 await clear_messages(message.channel))
 
-    elif function == "/alexjones":
-        nickname = nickname.upper() 
-        lines = nickname.split(',')
-        lines[0] = lines[0].strip()
-        lines[1] = lines[1].strip()
-        if len(lines) < 2:
-            lines.append('')
-        print(f"Generating Alex Jones meme: {lines[0]}, {lines[1]}")
-        alex_jones(lines[0], lines[1])
-        await client.send_file(message.channel, "temp/alex_jones.jpg")
+    elif function == "play":
+        await yt_play(author, nickname)
+
+    elif function in MEMEGEN_PARSES:
+        await memegen_parse(function, nickname, message.channel)
 
     if client_message != None:
         await fade_messages([client_message, message], time)
+
+
+async def yt_play(author, url):
+    voice = await client.join_voice_channel(author.voice.voice_channel)
+    player = await voice.create_ytdl_player(url, ytdl_options=None, 
+            after=voice.disconnect)
+    player.start()
 
 
 # accepts a message object
@@ -98,9 +103,10 @@ def parse_request(message):
     function = None
     nickname = None
 
-    if message.content.startswith("/"):
+    if message.content.startswith(PREFIX):
         args = message.content.split(" ")
-        function = args[0]
+        function = args[0][1:]
+        print(function)
         print(f"Author: {message.author.display_name}, ID: {message.author.id}")
 
         if len(args) > 1:
@@ -125,7 +131,7 @@ async def change_nickname(author, nickname):
 
 
 async def fade_messages(messages, time):
-    await asyncio.sleep(7)
+    await asyncio.sleep(time)
     for message in messages:
         try:
             await client.delete_message(message)
@@ -176,6 +182,18 @@ async def send_palindrome():
         index = int(pals[-1])
 
     await client.send_message(client.get_channel("517190316273696768"), palindrome)
+
+async def memegen_parse(meme, text, channel):
+        lines = text.split(',')
+        for line in range(len(lines)):
+            lines[line] = lines[line].upper().strip()
+        if len(lines) < 2:
+            lines.append('')
+        print(f"Generating {meme} meme: {lines[0]}, {lines[1]}")
+        make_meme(lines[0], lines[1], meme)
+        await client.send_file(channel, f"temp/{meme}.jpg")
+
+
 
 
 # This starts the bot 
