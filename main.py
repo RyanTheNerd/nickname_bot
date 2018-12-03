@@ -72,18 +72,8 @@ async def on_message(message):
         f"Successfully dropped all names for user {user.display_name}")
     
     elif function == "help":
-        help_message = (
-                "\t\tRandom nickname bot\n\n"
-                "Commands:\n"
-                "\t`/addname potato` - adds the name `potato` to your pool\n"
-                "\t`/addname @Xtgyuio kek` - adds the name `kek` to Xtgyuio's pool\n"
-                "\t`/rmname potato` - remove the name `potato` from your pool\n"
-                "\t`/lsname` - list all current names in your pool\n"
-                "\t`/lsarchived` - list all previous names in your pool\n"
-                "\t`/lsall` - list all names of all time\n"
-                "You get the idea"
-        )
-        await client.send_message(message.channel, help_message)
+        with open("./README.md", 'r') as README:
+            await client.send_message(message.channel, f"```md\n{README.read()}```")
     elif function in ["cls", "clr"]:
         print(f"Clearing messages for channel '{str(message.channel)}'")
         client_message = await client.send_message(message.channel, 
