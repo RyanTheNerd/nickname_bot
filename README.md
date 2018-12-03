@@ -4,7 +4,14 @@ A discord bot that randomly changes your nickname from a user defined pool of ni
 ## Adding nickname_bot to your server:
 Click *[here](https://discordapp.com/oauth2/authorize?client_id=504395357472686099&permissions=201554944&scope=bot)*
 ## Commands:
-* `/addname potato` - adds the name potato to your pool
-* `/addname @Xtguio kek` - adds the name kek to Xtguio's pool
-* `/rmname potato` - remove the name potato from your pool
-* `/lsname` - list all current names in your pool
+### Nickname commands:
+* `/addname potato` - Adds the name potato to your pool
+* `/addname @Xtguio kek` - Adds the name kek to Xtguio's pool
+* `/rmname potato` - Removes the name potato from your pool
+* `/lsname` - Lists all current names in your pool
+* `/lsarchived` - Lists all names previously in your pool
+* `/lsall` - Lists all names, previous and current
+### Other commands:
+* `/clr` or `/cls` - Clears all bot output from up to 5 days before
+* `/alexjones [top], [bottom]` - Create a meme with Alex Jones
+* `/hackerman [top], [bottom]` - Create a meme with Hackerman
