@@ -3,14 +3,17 @@ import config
 import random
 import logging
 import asyncio
+import os
 
 import datetime as dt
 import database as db
 
 from memegenerator import make_meme
+from memegen_parses import MEMEGEN_PARSES
 from parses import extra_parses
 
-MEMEGEN_PARSES = ["alexjones", "hackerman"]
+MEMEGEN_OUTPUT = "./temp/"
+MEME_PATH = "./resources/memes/"
 PREFIX = "/"
 
 # This creates an instance of the bot
@@ -37,7 +40,7 @@ async def on_message(message):
     await change_nickname(author, nickname)
     await top_kek(message)
     client_message = None
-    time = None
+    time = -1
 
     user, function, nickname = parse_request(message)
     await extra_parses(client, message)
@@ -47,20 +50,26 @@ async def on_message(message):
         response = db.add_nickname(user.id, nickname)
         if len(response) != 0:
             client_message = await client.send_message(message.channel, response)
-            time = 2
 
     elif function == "rmname":
         print(f"Removing Name {nickname} from {user.display_name}'s bank")
         db.remove_nickname(user.id, nickname)
         client_message = await client.send_message(message.channel, 
                 f"Removing Name {nickname} from {user.display_name}'s bank")
-        time = 2
         
-    elif function == "lsname":
+    elif function in ["lsname", "lsarchived", "lsall"]:
         print("\tListing Names:")
+        queries = {"lsarchived": "archived", "lsall": "all", "lsname": "default"}
         client_message = await client.send_message(message.channel, 
-                db.pprint_names(user.id))
+                db.pprint_names(user.id, queries[function]))
         time = 7
+
+
+    elif function == "dropnames":
+        print(f'Dropping names for "{user.display_name}"')
+        db.remove_all_names(user.id)
+        client_message = await client.send_message(message.channel, 
+        f"Successfully dropped all names for user {user.display_name}")
     
     elif function == "help":
         help_message = (
@@ -70,6 +79,8 @@ async def on_message(message):
                 "\t`/addname @Xtgyuio kek` - adds the name `kek` to Xtgyuio's pool\n"
                 "\t`/rmname potato` - remove the name `potato` from your pool\n"
                 "\t`/lsname` - list all current names in your pool\n"
+                "\t`/lsarchived` - list all previous names in your pool\n"
+                "\t`/lsall` - list all names of all time\n"
                 "You get the idea"
         )
         await client.send_message(message.channel, help_message)
@@ -78,21 +89,16 @@ async def on_message(message):
         client_message = await client.send_message(message.channel, 
                 await clear_messages(message.channel))
 
-    elif function == "play":
-        await yt_play(author, nickname)
-
     elif function in MEMEGEN_PARSES:
         await memegen_parse(function, nickname, message.channel)
 
     if client_message != None:
-        await fade_messages([client_message, message], time)
+        if time == -1:
+            await fade_messages([client_message, message])
+        else:
+            await fade_messages([client_message, message], time)
 
 
-async def yt_play(author, url):
-    voice = await client.join_voice_channel(author.voice.voice_channel)
-    player = await voice.create_ytdl_player(url, ytdl_options=None, 
-            after=voice.disconnect)
-    player.start()
 
 
 # accepts a message object
@@ -130,7 +136,7 @@ async def change_nickname(author, nickname):
         print(f"I can't change {author.display_name}'s nickname")
 
 
-async def fade_messages(messages, time):
+async def fade_messages(messages, time=3):
     await asyncio.sleep(time)
     for message in messages:
         try:
@@ -142,8 +148,8 @@ async def clear_messages(channel):
     def predicate(message):
         if(message.author == client.user):
             return True
-        for start in ["/lsname", "/rmname", "/addname", "/cls", "clr", "/help"]:
-            if message.content.startswith(start):
+        for start in ["lsname", "rmname", "addname", "cls", "clr", "help"]:
+            if message.content.startswith(PREFIX + start):
                 return True
         return False
 
@@ -153,7 +159,7 @@ async def clear_messages(channel):
 
 async def top_kek(message):
     if "top kek" in message.content.lower():
-        await client.send_file(message.channel, "resources/top-kek-2.png")
+        await client.send_file(message.channel, os.path.join(MEME_PATH, "top_kek.jpg"))
 
 async def whats_new():
     with open("resources/whats_new.txt", 'a+') as message_file:
@@ -171,7 +177,7 @@ async def whats_new():
         for channel in server.channels: 
             # Channels on the server
             if (channel.permissions_for(server.me).send_messages and 
-                    channel.type == "text"):
+                    channel.type == discord.ChannelType.text):
                 await client.send_message(channel, message)
                 # So that we don't send to every channel:
                 break
@@ -191,7 +197,7 @@ async def memegen_parse(meme, text, channel):
             lines.append('')
         print(f"Generating {meme} meme: {lines[0]}, {lines[1]}")
         make_meme(lines[0], lines[1], meme)
-        await client.send_file(channel, f"temp/{meme}.jpg")
+        await client.send_file(channel, os.path.join(MEMEGEN_OUTPUT, f"{meme}.jpg"))
 
 
 

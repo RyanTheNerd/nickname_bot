@@ -21,16 +21,27 @@
 #SOFTWARE.
 
 FONT_PATH="/home/ryan/.fonts/impact.ttf"
+INPUT_PATH="./resources/meme_templates/"
+OUTPUT_PATH="./temp/"
 
 import PIL
 from PIL import ImageFont
 from PIL import Image
 from PIL import ImageDraw
 import os
+import wget
+
+def create_template(name, url):
+    wget
+    
+    with open("memegen_parses.py", "a+") as meme_file:
+        meme_file.seek(1)
+        memes = meme_file.readline()
+        memes += f', "{name}"'
 
 def make_meme(topString, bottomString, filename):
 
-	img = Image.open(f"resources/{filename}.jpg")
+	img = Image.open(os.path.join(INPUT_PATH, f"{filename}.jpg"))
 	imageSize = img.size
 
 	# find biggest font size that works
@@ -67,6 +78,6 @@ def make_meme(topString, bottomString, filename):
 	draw.text(topTextPosition, topString, (255,255,255), font=font)
 	draw.text(bottomTextPosition, bottomString, (255,255,255), font=font)
 
-	img.save(f"temp/{filename}.jpg")
+	img.save(os.path.join(OUTPUT_PATH, f"{filename}.jpg"))
 
 

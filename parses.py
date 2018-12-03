@@ -7,9 +7,12 @@ def god_parse(message):
 
 def palindrome_parse(message):
     chars_to_keep = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890"
+    #print(f"Message: {message}")
     message_no_space = ''.join(ch for ch in message if ch in chars_to_keep)
+    #print(f"Message no space: {message_no_space}")
     lower = message_no_space.lower()
-    if len(message) > 3 and lower == lower[::-1] and ' ' in message:
+    if len(message_no_space) > 3 and lower == lower[::-1] and ' ' in message:
+        #print(f'"{lower} == {lower[::-1]}"')
         return {"message": f"\"{message}\" is a palindrome! Wow!"}
     message = ''.join(ch for ch in message if ch in chars_to_keep + ' ')
     for word in message.split(" "):
@@ -32,11 +35,15 @@ def A_GAME_THEORY(message):
     if "just a theory" in message.lower():
         return {"message": "A GAME THEORY"}
 
+def john(message):
+    if "smh" in message:
+        return {"message": "John is disappoint"}
+
 async def extra_parses(client, message):
     if message.author.id == client.user.id:
         return
 
-    parses = [god_parse, palindrome_parse, dennis_parse, A_GAME_THEORY, yum_yum]
+    parses = [john, god_parse, palindrome_parse, dennis_parse, A_GAME_THEORY, yum_yum]
     previous_name = client.user.display_name
 
     for parse in parses:
