@@ -29,10 +29,8 @@ from PIL import ImageFont
 from PIL import Image
 from PIL import ImageDraw
 import os
-import wget
 
 def create_template(name, url):
-    wget
     
     with open("memegen_parses.py", "a+") as meme_file:
         meme_file.seek(1)

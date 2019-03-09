@@ -1,7 +1,7 @@
 from pymongo import MongoClient
-from random import randrange
+from random import choice
 
-client = MongoClient()
+client = MongoClient(port=27018)
 db = client.nicknames
 
 serverStatusResult = db.command("serverStatus")
@@ -11,17 +11,14 @@ def remove_all_names(id_num):
     return
 
 def get_nickname(id_num, original):
-    nicknames_db = db.nicknames.find({'id': id_num, 'archived': False})
-    nicknames = []
-    for nickname in nicknames_db:
-        nicknames.append(nickname["nickname"])
+    nicknames = list_names(id_num)
     nickname = False
     if len(nicknames) < 2:
         if len(nicknames) == 0:
             return original
         return nicknames[0]
     while nickname == False or nickname == original:
-        nickname = nicknames[randrange(len(nicknames))]
+        nickname = choice(nicknames)
     return nickname 
 
 def remove_nickname(id_num, nickname):
@@ -63,10 +60,11 @@ def list_names(id_num, query = "default"):
     nicknames = db.nicknames.find({'id': id_num})
     name_list = []
     for index, nickname in enumerate(nicknames):
-        if( query == "default" and not nickname['archived'] or
-            query == "archived" and nickname['archived'] or
+        if( 
+            query == "default" and not('archived' in nickname) or
+            query == "archived" and 'archived' in nickname or
             query == "all"
-            ):
+        ):
             name_list.append(nickname['nickname'])
     return name_list
 
