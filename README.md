@@ -16,6 +16,7 @@ Click *[here](https://discordapp.com/oauth2/authorize?client_id=5043953574726860
 * `/lsname` - Lists all current names in your pool
 * `/lsarchived` - Lists all names previously in your pool
 * `/lsall` - Lists all names, previous and current
+* `/quote` - Generate a random quote
 
 ### Other commands:
 * `/clr` or `/cls` - Clears all bot output from up to 5 days before
