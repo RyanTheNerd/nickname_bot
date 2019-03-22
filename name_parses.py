@@ -3,8 +3,12 @@
 # Output: Response message, fade time
 
 import random
+import json
 import database as db
 from utils import fade_messages, clear_messages
+
+with open("quotes.json", 'r') as quote_file:
+    QUOTES = json.loads(quote_file.read())['quotes']
 
 def addname(user, command, nickname):
     if command == "addname":
@@ -63,13 +67,22 @@ f"{user} has such a high libido that he faps to hentai 3 times daily",
 f"{user} may be a virgin, but he's had lots of experience with his body pillows",
         ]),
         "fade": 0,
-}
+        }
+
+def quote(user, command, nickname):
+    if command == "quote":
+        quote = random.choice(QUOTES)
+        return {
+            "message": f"\"{quote['quote']}\" - {quote['author']}",
+            "fade": 0,
+        }
+
 
 async def clear(client, command, message):
     if command in ["cls", "clr"]:
         return { "message": await clear_messages(client, message.channel)}
     
-name_parses = [wingman, addname, rmname, lsname, dropnames, oh_sammich, idof, help, about]
+name_parses = [quote, wingman, addname, rmname, lsname, dropnames, oh_sammich, idof, help, about]
 
 async def run(client, message, user, command, nickname, channel):
     for function in name_parses:

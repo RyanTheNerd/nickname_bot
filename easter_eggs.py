@@ -31,9 +31,8 @@ def palindrome_parse(message):
 
 
 #def dennis_parse(message):
-#    message = message.content
-#    if message.lower().startswith("no u"):
-#        return {"message": "Are you bothering your friends again sweetie?", "name": "Dennis' Mom"}
+#    if message.content.lower().startswith("no u"):
+#        return {"delete": True}
 
 def madlad(message):
     message = message.content
@@ -70,6 +69,7 @@ async def run(client, message):
         pay_respects,
         palindrome_parse, 
         A_GAME_THEORY,
+#        dennis_parse,
     ] + explicit_eggs
     previous_name = client.user.display_name
 
@@ -77,6 +77,8 @@ async def run(client, message):
         output = parse(message)
         if output == None:
             continue
+        if "delete" in output:
+            await client.delete_message(message)
         if "name" in output:
             await client.change_nickname(message.server.me, output["name"])
 
@@ -85,6 +87,7 @@ async def run(client, message):
 
         if "name" in output:
             await client.change_nickname(message.server.me, previous_name)
+
         if output:
             return
 

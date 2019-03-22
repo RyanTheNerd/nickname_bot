@@ -8,7 +8,7 @@ import os
 import name_parses
 import easter_eggs
 
-from database import get_nickname
+from database import get_nickname, count_nicknames
 
 from memegenerator import make_meme
 from memegen_parses import MEMEGEN_PARSES
@@ -28,12 +28,13 @@ async def on_ready():
     member_count = len(set(client.get_all_members()))
     server_count = len(client.servers)
     print(f"Logged in as {client.user.name} (ID: {client.user.id})")
+    print(f"Over {count_nicknames()} saved nicknames")
     print(f"Connected to {server_count} servers")
     print(f"Connected to {member_count} users")
     print(f"Servers:")
     for server in client.servers:
-        print(f"\tserver.name")
-    game = discord.Game(name=f"Confusing {member_count} users on {server_count} servers")
+        print(f"\t{server.name}")
+    game = discord.Game(name=f"Over {count_nicknames()} saved nicknames")
     await client.change_presence(game=game)
     await whats_new()
     #await send_palindrome()
@@ -43,7 +44,7 @@ async def on_ready():
 async def on_message(message):
     author = message.author
     nickname = get_nickname(author.id, author.display_name)
-    await change_nickname(author, nickname)
+    await change_nickname(message, author, nickname)
     await top_kek(message)
     client_message = None
     time = -1
@@ -96,15 +97,17 @@ def parse_request(message):
             nickname = " ".join(args[1:])
 
         print(f"\tUser: {user_name}, ID: {user_id}")
-        print(f"\tCommand: {command}, Nickname/Arg: {nickname or 'None'}")
+        print(f"\tCommand: {command}, Nickname/Arg: {nickname or 'None'}\n")
 
     return user, command, nickname
 
-async def change_nickname(author, nickname):
+async def change_nickname(message, author, nickname):
     try:
         await client.change_nickname(author, nickname)
 
     except Exception as e:
+        if message.server.owner == author:
+            return
         print(f"Error changing {author.display_name}'s nickname: {e}")
 
 

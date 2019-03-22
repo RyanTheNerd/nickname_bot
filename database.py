@@ -76,3 +76,6 @@ def pprint_names(id_num, query = "default"):
         name_list += f"{index + 1}. {names[index]}\n"
 
     return name_list
+
+def count_nicknames():
+    return db.nicknames.count()
