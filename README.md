@@ -18,6 +18,19 @@ Click *[here](https://discordapp.com/oauth2/authorize?client_id=5043953574726860
 * `/lsall` - Lists all names, previous and current
 * `/quote` - Generate a random quote
 
+## IQ
+When voting ends, the iq offered by each user will be multiplied by the
+number of votes each user accumulated, and that will be added to each
+user's iq bank.
+If the user got 0 votes, they lose the iq they offered for that question.
+
+### commands:
+* `/iq` - Lists your current iq
+* `/quiz` - Start a iq challenge thing
+* `/bet` - Bet a certain number of your iq. 
+* `/vote` - Vote for someone
+* `/endquiz` - End the quiz, tally the votes and give iq accordingly
+
 ### Other commands:
 * `/clr` or `/cls` - Clears all bot output from up to 5 days before
 * `/alexjones [top], [bottom]` - Create a meme with Alex Jones

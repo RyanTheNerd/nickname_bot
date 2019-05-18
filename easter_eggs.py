@@ -1,9 +1,12 @@
 from explicit_eggs import explicit_eggs
+import random
+import re
+
 
 def god_parse(message):
     message = message.content
     for string in ["god said", "god told me"]:
-        if string in message.lower():
+       if string in message.lower():
             return {"message":"I NEVER SAID THAT", "name": "GOD"}
 
 def palindrome_parse(message):
@@ -30,9 +33,6 @@ def palindrome_parse(message):
             return {"message": f"{word} is a palindrome! Wow!"}
 
 
-#def dennis_parse(message):
-#    if message.content.lower().startswith("no u"):
-#        return {"delete": True}
 
 def madlad(message):
     message = message.content
@@ -44,10 +44,6 @@ def A_GAME_THEORY(message):
     if "just a theory" in message.lower():
         return {"message": "A GAME THEORY"}
 
-def john(message):
-    message = message.content
-    if "smh" in message:
-        return {"message": "John is disappoint"}
 
 def pay_respects(message):
     message = message.content
@@ -58,35 +54,55 @@ def pay_respects(message):
             return
     return { "message": "f"*50 }
 
+def either(message):
+    message = message.content
+    if not message.lower().startswith('either'):
+        return
+
+    message = message.split(' or ')
+    first_word = message[0].split(' ')[0]
+    if len(message) > 1:
+        # Remove the first word, previously confirmed to be 'either'
+        message[0] = ' '.join(message[0].split(' ')[1:])
+        return {'message': '***__' + random.choice(message).upper() + '__***'}
+
+def rarted(message):
+    message = message.content
+    message = re.sub(r'\W+', '', message)
+    if message.lower().endswith('rarted'):
+        return {
+            "message": "https://i.kym-cdn.com/entries/icons/mobile/000/025/554/jomannn.jpg",
+            "name": "Joseph man9062",
+        }
+
 async def run(client, message):
     if message.author.id == client.user.id:
         return
 
     parses = [
         madlad, 
-        john, 
         god_parse, 
         pay_respects,
         palindrome_parse, 
         A_GAME_THEORY,
-#        dennis_parse,
+        either,
+        rarted,
     ] + explicit_eggs
+
     previous_name = client.user.display_name
 
     for parse in parses:
         output = parse(message)
         if output == None:
             continue
-        if "delete" in output:
-            await client.delete_message(message)
         if "name" in output:
-            await client.change_nickname(message.server.me, output["name"])
+            await message.guild.me.edit(nick=output["name"])
 
         if "message" in output:
-            await client.send_message(message.channel, output["message"])
+            await message.channel.send(output["message"])
 
         if "name" in output:
-            await client.change_nickname(message.server.me, previous_name)
+            await message.guild.me.edit(nick=previous_name)
 
         if output:
             return

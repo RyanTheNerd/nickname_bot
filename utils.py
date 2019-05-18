@@ -5,7 +5,7 @@ async def fade_messages(client, messages, time=3):
     await asyncio.sleep(time)
     for message in messages:
         try:
-            await client.delete_message(message)
+            await message.delete()
         except:
             continue
 async def clear_messages(client, channel):

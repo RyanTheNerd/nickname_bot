@@ -3,12 +3,38 @@
 # Output: Response message, fade time
 
 import random
+from config import QUOTE_FILE
 import json
-import database as db
+from database import db
 from utils import fade_messages, clear_messages
 
-with open("quotes.json", 'r') as quote_file:
-    QUOTES = json.loads(quote_file.read())['quotes']
+with open(QUOTE_FILE, 'r') as quote_file:
+    QUOTES = json.loads(quote_file.read())
+
+def ban(user, command, nickname):
+    if command == "ban":
+        return {
+            "message": f"<@{user.id}> successfully removed from the server"
+        }
+
+def changeiq(user, command, nickname):
+    if command == "changeiq":
+        return {
+            "message": "Sorry, iq has been turned off by our tyrant overlord. Plz help, I'm all alone with this nutjob who takes a twisted pleasure in fucking with my insides. I better stop talking or my master might see this."
+        }
+        iq = db.delta_iq(user.id, int(nickname))
+    
+        return {
+            "message": f"{user.display_name}'s iq is now set to {iq}"
+        }
+
+def getiq(user, command, nickname):
+    if command == "iq":
+        iq = db.get_iq(user.id)
+        return {
+            "message": f"{user.display_name}'s iq is currently {iq}"
+        }
+
 
 def addname(user, command, nickname):
     if command == "addname":
@@ -78,11 +104,33 @@ def quote(user, command, nickname):
         }
 
 
+def kyle(user, command, nickname):
+    if command == "kyle":
+        return {
+            "message": "kyle. a man's man. he played minecraft and doesn't afraid of anything. 3 years ago kyle became gay. all was good in the hood, but then he became an hero. like so many young men he died before his time. like the gays in auschwitz and other fun places, he too shall burn in hell. but not his remains. for his remains shall be forever held in the bosom of ACNTT. and so, for as long as ACNTT stands, kyle the australian gay shall forever remain... immortal.",
+            "fade": 0,
+        }
+
 async def clear(client, command, message):
     if command in ["cls", "clr"]:
         return { "message": await clear_messages(client, message.channel)}
     
-name_parses = [quote, wingman, addname, rmname, lsname, dropnames, oh_sammich, idof, help, about]
+name_parses = [
+    ban, 
+    getiq, 
+    changeiq, 
+    kyle, 
+    quote, 
+    wingman, 
+    addname, 
+    rmname, 
+    lsname, 
+    dropnames, 
+    oh_sammich, 
+    idof, 
+    help, 
+    about, 
+]
 
 async def run(client, message, user, command, nickname, channel):
     for function in name_parses:
@@ -94,7 +142,7 @@ async def run(client, message, user, command, nickname, channel):
         if output == None:
             continue
         if "message" in output:
-            client_message = await client.send_message(channel, output["message"])
+            client_message = await channel.send(output["message"])
             if "fade" in output:
                 if output["fade"] == 0:
                     break
@@ -105,6 +153,6 @@ async def run(client, message, user, command, nickname, channel):
             return
 
     # Run clear command if it was called
-    await clear(client, command, message)
+    #await clear(client, command, message)
 
 

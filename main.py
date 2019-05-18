@@ -3,20 +3,23 @@ import config
 import random
 import logging
 import asyncio
+import string
 import os
 
 import name_parses
 import easter_eggs
 
-from database import get_nickname, count_nicknames
+from database import db
 
 from memegenerator import make_meme
 from memegen_parses import MEMEGEN_PARSES
 from utils import fade_messages
+from config import PREFIX
+from fight import fight
+#from question import quiz_client
 
 MEMEGEN_OUTPUT = "./temp/"
 MEME_PATH = "./resources/memes/"
-PREFIX = "/"
 
 # This starts mongodb
 # This creates an instance of the bot
@@ -25,44 +28,38 @@ client = discord.Client()
 # on_ready function is only ran when the bot is first started
 @client.event
 async def on_ready():
-    member_count = len(set(client.get_all_members()))
-    server_count = len(client.servers)
+    member_count = len(set(client.users))
+    guild_count = len(client.guilds)
     print(f"Logged in as {client.user.name} (ID: {client.user.id})")
-    print(f"Over {count_nicknames()} saved nicknames")
-    print(f"Connected to {server_count} servers")
+    print(f"Over {db.count_nicknames()} saved nicknames")
+    print(f"Connected to {guild_count} guilds")
     print(f"Connected to {member_count} users")
-    print(f"Servers:")
-    for server in client.servers:
-        print(f"\t{server.name}")
-    game = discord.Game(name=f"Over {count_nicknames()} saved nicknames")
-    await client.change_presence(game=game)
-    await whats_new()
+    print(f"guilds:")
+    for guild in client.guilds:
+        print(f"\t{guild.name}")
+    status = discord.Game(name=f"Over {db.count_nicknames()} saved nicknames")
+    await client.change_presence(activity=status)
+    #await whats_new()
     #await send_palindrome()
 
 # on_message runs every time the bot recieves a message from any channel
 @client.event
 async def on_message(message):
     author = message.author
-    nickname = get_nickname(author.id, author.display_name)
+    nickname = db.get_nickname(author.id, author.display_name)
     await change_nickname(message, author, nickname)
-    await top_kek(message)
-    client_message = None
-    time = -1
 
     user, command, nickname = parse_request(message)
 
+    #await top_kek(message)
     await name_parses.run(client, message, user, command, nickname, message.channel)
     await easter_eggs.run(client, message)
-
+    await fight(message)
+    #await quiz_client.handle_message(client, message)
 
     if command in MEMEGEN_PARSES:
         await memegen_parse(command, nickname, message)
 
-    if client_message != None:
-        if time == -1:
-            await fade_messages(client, [client_message, message])
-        else:
-            await fade_messages(client, [client_message, message], time)
 
 
 
@@ -82,31 +79,33 @@ def parse_request(message):
         author_id = message.author.id
         print(f"Author: {author_name}, ID: {author_id}")
 
-        if len(args) > 1:
+        if len(args) > 1: 
             user_id = ''.join(i for i in args[1] if i.isdigit())
-            user_name = client.get_user_info(user_id)
-            user = message.server.get_member(user_id)
+            if len(user_id) is 18:
+                user = message.guild.get_member(int(user_id))
 
+        if user is None:
+            user = author
+            user_id = author_id
+            user_name = "Same as Author"
+            nickname = ' '.join(args[1:])
+
+        else:
+            user_name = user.display_name
             nickname = " ".join(args[2:])
 
 
-        if user == None:
-            user = author
-            user_name = "Same as author"
-            user_id = author_id
-            nickname = " ".join(args[1:])
-
         print(f"\tUser: {user_name}, ID: {user_id}")
-        print(f"\tCommand: {command}, Nickname/Arg: {nickname or 'None'}\n")
+        print(f"\tCommand: {command}, Nickname/Arg: {nickname}\n")
 
     return user, command, nickname
 
 async def change_nickname(message, author, nickname):
     try:
-        await client.change_nickname(author, nickname)
+        await author.edit(nick=nickname)
 
     except Exception as e:
-        if message.server.owner == author:
+        if message.guild.owner == author:
             return
         print(f"Error changing {author.display_name}'s nickname: {e}")
 
@@ -115,7 +114,7 @@ async def change_nickname(message, author, nickname):
 
 async def top_kek(message):
     if "top kek" in message.content.lower():
-        await client.send_file(message.channel, os.path.join(MEME_PATH, "top_kek.jpg"))
+        await message.channel.send(file=os.path.join(MEME_PATH, "top_kek.jpg"))
 
 async def whats_new():
     with open("resources/whats_new.txt", 'a+') as message_file:
@@ -126,25 +125,17 @@ async def whats_new():
         message_file.seek(0, 2)
         message_file.write("already_announced")
 
-    # Post message in first text channel with write permission in each server
+    # Post message in first text channel with write permission in each guild
 
-    for server in client.servers: 
-        # Spin through every server
-        for channel in server.channels: 
-            # Channels on the server
-            if (channel.permissions_for(server.me).send_messages and 
+    for guild in client.guilds: 
+        # Spin through every guild
+        for channel in guild.channels: 
+            # Channels on the guild
+            if (channel.permissions_for(guild.me).send_messages and 
                     channel.type == discord.ChannelType.text):
-                await client.send_message(channel, message)
+                await channel.send(message)
                 # So that we don't send to every channel:
                 break
-
-async def send_palindrome():
-    # TODO
-    with open("resources/shuffled_palindromes.txt", "r") as pal_file:
-        pals = pal_file.read().split('\n')
-        index = int(pals[-1])
-
-    await client.send_message(client.get_channel("517190316273696768"), palindrome)
 
 async def memegen_parse(meme, text, message):
     channel = message.channel
@@ -155,8 +146,7 @@ async def memegen_parse(meme, text, message):
         lines.append('')
     print(f"Generating {meme} meme: {lines[0]}, {lines[1]}")
     make_meme(lines[0], lines[1], meme)
-    await client.send_file(channel, os.path.join(MEMEGEN_OUTPUT, f"{meme}.jpg"))
-    await client.delete_message(message)
+    await channel.send(file=discord.File(os.path.join(MEMEGEN_OUTPUT, f"{meme}.jpg")))
+    await message.delete()
 
-# This starts the bot 
 client.run(config.token)

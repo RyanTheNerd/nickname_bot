@@ -1,3 +1,3 @@
 MEMEGEN_PARSES = [
-    "alexjones", "hackerman", "benshapiro"
+    "alexjones", "hackerman", "benshapiro", "jacob",
 ]
