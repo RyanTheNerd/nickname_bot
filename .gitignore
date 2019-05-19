@@ -1,0 +1,8 @@
+*.json
+config.py
+explicit_eggs.py
+temp/
+database/
+.database/
+__pycache__/
+resources/
