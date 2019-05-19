@@ -1,15 +1,49 @@
 from config import PREFIX
 import asyncio
 import random
+
 fight_words = {
-    'weapons': ['sword', 'knife', 'garden hose', 'electric guitar', 'banana'],
+    'weapons': [
+        'sword', 
+        'knife', 
+        'garden hose', 
+        'electric guitar', 
+        'banana',
+        'toothbrush',
+        'rake',
+        'axe',
+        'pair of scissors',
+        'light saber',
+        'umbrella',
+    ],
     'actions': [
         "{0} cuts {1}'s legs off with a {2}", 
         "{0} slices {1}'s head clean off with a {2}", 
         "{0} beats {1} in the head with a {2} until they start bleeding",
+        "{0} chokes {1} out with a {2}",
+        "{0} stabs {1} in the heart with a {2}",
+        "{0} penetrates {1}'s asshole with a {2}",
+        "{0} skins {1} alive using nothing but a {2}",
+        "{0} rips {1}'s arms off and eats them raw",
     ]
 }
-    
+"""
+Weapons and actions should have weights between 1 and 10
+Action function combines a weapon and an action and calculates damage multiplier
+"""
+
+class Weapon:
+    def __init__(self, name, multipler, a_an):
+        self.name = name
+        self.multiplier = multiplier
+        self.a_an = a_an
+
+class action:
+    def __init__(self, weapon, multiplier):
+        self.name = name
+        self.weapon = weapon
+        self.multiplier = multiplier * self.weapon.multiplier
+
 class Fighter:
     def __init__(self, name):
         self.health = 100
@@ -22,15 +56,15 @@ class Fighter:
         damage = victim.take_damage()
 
         output = ""
-        output += action.format(self.name, victim.name, weapon)
+        output += action.format(self.name, victim.name, f"***__{weapon}__***")
 
 
-        output += f" and deals {damage} damage!\n"
+        output += f" and deals ***__{damage}__*** damage!\n"
         if victim.health <= 0:
-            output += f"\n{self.name} WINS!"
+            output += f"\n***__{self.name} WINS!__***"
 
         else:
-            output += f"{victim.name} is left with {victim.health} health!"
+            output += f"{victim.name} is left with ***__{victim.health}__*** health!"
 
 
         return output
@@ -70,6 +104,4 @@ async def fight(message):
         prev_attacker = attacker
         attacker = victim
         victim = prev_attacker
-
-
 
