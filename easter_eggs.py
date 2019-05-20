@@ -1,13 +1,8 @@
 from explicit_eggs import explicit_eggs
+from discord import File
 import random
 import re
 
-
-def god_parse(message):
-    message = message.content
-    for string in ["god said", "god told me"]:
-       if string in message.lower():
-            return {"message":"I NEVER SAID THAT", "name": "GOD"}
 
 def palindrome_parse(message):
     message = message.content
@@ -33,27 +28,6 @@ def palindrome_parse(message):
             return {"message": f"{word} is a palindrome! Wow!"}
 
 
-
-def madlad(message):
-    message = message.content
-    if "madlad" in message.replace(" ", ''):
-        return {"message": "https://i.imgur.com/E1UCCxX.jpg", "name": "Pewdiepie"}
-
-def A_GAME_THEORY(message):
-    message = message.content
-    if "just a theory" in message.lower():
-        return {"message": "A GAME THEORY"}
-
-
-def pay_respects(message):
-    message = message.content
-    if len(message) == 0:
-        return
-    for letter in message:
-        if letter != "f":
-            return
-    return { "message": "f"*50 }
-
 def either(message):
     message = message.content
     if not message.lower().startswith('either'):
@@ -66,27 +40,58 @@ def either(message):
         message[0] = ' '.join(message[0].split(' ')[1:])
         return {'message': '***__' + random.choice(message).upper() + '__***'}
 
-def rarted(message):
+
+def simple_responses(message):
     message = message.content
-    message = re.sub(r'\W+', '', message)
-    if message.lower().endswith('rarted'):
+
+    # REEEEE
+    if 'REEE' in message.upper():
+        return {
+            "file": File("resources/memes/REEEE.gif", filename="REEEE.gif")
+        }
+    
+    # Rarted
+    if re.sub(r'\W+', '', message).lower().endswith('rarted'):
         return {
             "message": "https://i.kym-cdn.com/entries/icons/mobile/000/025/554/jomannn.jpg",
             "name": "Joseph man9062",
         }
+
+    # Pay respects
+    if len(message) > 0:
+        pay_respects = True
+        for letter in message.lower():
+            if letter != "f":
+                pay_respects = False
+                break
+        if pay_respects:
+            return { "message": "F"*50 }
+
+    # A GAME THEORY
+    if "just a theory" in message.lower():
+        return {"message": "A GAME THEORY"}
+
+    # Madlad
+    if "madlad" in message.replace(" ", ''):
+        return {"message": "https://i.imgur.com/E1UCCxX.jpg", "name": "Pewdiepie"}
+
+    # GOD
+    for string in ["god said", "god told me"]:
+       if string in message.lower():
+            return {"message":"I NEVER SAID THAT", "name": "GOD"}
+
+
+
+    
 
 async def run(client, message):
     if message.author.id == client.user.id:
         return
 
     parses = [
-        madlad, 
-        god_parse, 
-        pay_respects,
         palindrome_parse, 
-        A_GAME_THEORY,
         either,
-        rarted,
+        simple_responses,
     ] + explicit_eggs
 
     previous_name = client.user.display_name
@@ -100,6 +105,9 @@ async def run(client, message):
 
         if "message" in output:
             await message.channel.send(output["message"])
+
+        if "file" in output:
+            await message.channel.send(file=output["file"])
 
         if "name" in output:
             await message.guild.me.edit(nick=previous_name)
