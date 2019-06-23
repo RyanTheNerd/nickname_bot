@@ -1,27 +1,32 @@
 # nickname_bot
 A discord bot that randomly changes your nickname from a user defined pool of nicknames each time you send a message
 
-## Github page:
 Github link: *[here](https://github.com/RyanTheNerd/nickname_bot)*
 
-## Adding nickname_bot to your server:
-Click *[here](https://discordapp.com/oauth2/authorize?client_id=504395357472686099&permissions=201554944&scope=bot)*
+Add link: *[here](https://discordapp.com/oauth2/authorize?client_id=504395357472686099&permissions=201554944&scope=bot)*
 
 ## Commands:
 
 ### Nickname commands:
-* `/addname potato` - Adds the name potato to your pool
-* `/addname @Xtguio kek` - Adds the name kek to Xtguio's pool
-* `/rmname potato` - Removes the name potato from your pool
-* `/lsname` - Lists all current names in your pool
-* `/lsarchived` - Lists all names previously in your pool
-* `/lsall` - Lists all names, previous and current
-* `/quote` - Generate a random quote
+Nicknames will automatically be archived within a week of being added. To add a name back, use the `/addname` command.
+
+#### General format:
+With all name commands you can either pass a mention and then a name, or just a name. For example, `/addname [mention] [name]` adds `[name]` to `[mention]`'s pool. If you'd like to access your own pool, only pass a name.
+
+#### Command listing:
+* `/addname [mention] [name]` - Adds `[name]` to `[mention]`'s pool
+* `/rmname [mention] [name]` - Removes `[name]` from `[mention]`'s pool
+* `/lsname [mention]` - Lists all current names in `[mention]`'s pool
+* `/lsarchived [mention]` - Lists all archived names in `[mention]`'s pool
+* `/lsall [mention]` - Lists all names, previous and current in `[mention]`'s pool
+
 
 ### Other commands:
 * `/clr` or `/cls` - Clears all bot output from up to 5 days before
 * `/alexjones [top], [bottom]` - Create a meme with Alex Jones
 * `/hackerman [top], [bottom]` - Create a meme with Hackerman
+* `/quote` - Generate a random quote
+* `/deepfry [url]` - Deepfry an image located at `[url]`
 
 ### Easter eggs:
 * `{fighter} VS {figher}: FIGHT!` - Simulate a fight between two characters
