@@ -36,14 +36,14 @@ sad_cry_frames = [
     ":sob:",
 ]
 
-with open('porn_frames.json', 'r') as porn_frame_file:
-    porn_frames = json.load(porn_frame_file)
+with open('anim_frames.json', 'r') as anim_frames_file:
+    anim_frames = json.load(anim_frames_file)
 
 
 animations = [
     Animation("smile", 1, smile_wink_frames, 5),
     Animation("cry", 1, sad_cry_frames, 5),
-    Animation("porn", 1, porn_frames, 1, monospaced = True),
+    Animation("porn", 1, anim_frames, 1, monospaced = True),
 ]
 
 async def run_animations(message):
