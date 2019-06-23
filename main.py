@@ -13,10 +13,11 @@ from database import db
 
 from memegenerator import make_meme
 from memegen_parses import MEMEGEN_PARSES
-from utils import fade_messages
+from utils import fade_messages, parse_request
 from config import PREFIX
 from fight import fight
-#from question import quiz_client
+from animate import run_animations
+from stats import genStatsHTML
 
 MEMEGEN_OUTPUT = "./temp/"
 MEME_PATH = "./resources/memes/"
@@ -24,6 +25,7 @@ MEME_PATH = "./resources/memes/"
 # This starts mongodb
 # This creates an instance of the bot
 client = discord.Client()
+
 
 # on_ready function is only ran when the bot is first started
 @client.event
@@ -39,6 +41,7 @@ async def on_ready():
         print(f"\t{guild.name}")
     status = discord.Game(name=f"Over {db.count_nicknames()} saved nicknames")
     await client.change_presence(activity=status)
+    await genStatsHTML(client, db, config.STATSPATH)
     #await whats_new()
     #await send_palindrome()
 
@@ -55,6 +58,7 @@ async def on_message(message):
     await name_parses.run(client, message, user, command, nickname, message.channel)
     await easter_eggs.run(client, message)
     await fight(message)
+    await run_animations(message)
     #await quiz_client.handle_message(client, message)
 
     if command in MEMEGEN_PARSES:
@@ -66,40 +70,6 @@ async def on_message(message):
 
 # accepts a message object
 # returns user object, command name, and nickname
-def parse_request(message):
-    author = message.author
-    user = None
-    command = None
-    nickname = None
-
-    if message.content.startswith(PREFIX):
-        args = message.content.split(" ")
-        command = args[0][1:]
-        author_name = message.author.display_name
-        author_id = message.author.id
-        print(f"Author: {author_name}, ID: {author_id}")
-
-        if len(args) > 1: 
-            user_id = ''.join(i for i in args[1] if i.isdigit())
-            if len(user_id) is 18:
-                user = message.guild.get_member(int(user_id))
-
-        if user is None:
-            user = author
-            user_id = author_id
-            user_name = "Same as Author"
-            nickname = ' '.join(args[1:])
-
-        else:
-            user_name = user.display_name
-            nickname = " ".join(args[2:])
-
-
-        print(f"\tUser: {user_name}, ID: {user_id}")
-        print(f"\tCommand: {command}, Nickname/Arg: {nickname}\n")
-
-    return user, command, nickname
-
 async def change_nickname(message, author, nickname):
     try:
         await author.edit(nick=nickname)
@@ -149,4 +119,13 @@ async def memegen_parse(meme, text, message):
     await channel.send(file=discord.File(os.path.join(MEMEGEN_OUTPUT, f"{meme}.jpg")))
     await message.delete()
 
-client.run(config.token)
+async def expire_names():
+    await client.wait_until_ready()
+    while not client.is_closed():
+        print("Checking for expired names...")
+        db.expire_names()
+        await asyncio.sleep(60*60)
+
+client.loop.create_task(expire_names())
+
+client.run(config.TOKEN)

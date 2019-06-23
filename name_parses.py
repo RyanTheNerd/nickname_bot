@@ -3,8 +3,10 @@
 # Output: Response message, fade time
 
 import random
-from config import QUOTE_FILE
 import json
+from discord import File
+import deepfrier
+from config import QUOTE_FILE
 from database import db
 from utils import fade_messages, clear_messages
 
@@ -111,9 +113,14 @@ def kyle(user, command, nickname):
             "fade": 0,
         }
 
+def deepfry(user, command, nickname):
+    if command == 'deepfry':
+        output = deepfrier.deepfry(nickname)
+        return {'file': output}
+
 async def clear(client, command, message):
     if command in ["cls", "clr"]:
-        return { "message": await clear_messages(client, message.channel)}
+        return { "file": await clear_messages(client, message.channel)}
     
 name_parses = [
     ban, 
@@ -128,6 +135,7 @@ name_parses = [
     dropnames, 
     oh_sammich, 
     idof, 
+    deepfry,
     help, 
     about, 
 ]
@@ -151,6 +159,9 @@ async def run(client, message, user, command, nickname, channel):
                 await fade_messages(client, [message, client_message])
 
             return
+        elif 'file' in output:
+            await channel.send(file=File(output['file']))
+            await fade_messages(client, [message], time=0)
 
     # Run clear command if it was called
     #await clear(client, command, message)

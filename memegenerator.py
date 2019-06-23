@@ -30,13 +30,6 @@ from PIL import Image
 from PIL import ImageDraw
 import os
 
-def create_template(name, url):
-    
-    with open("memegen_parses.py", "a+") as meme_file:
-        meme_file.seek(1)
-        memes = meme_file.readline()
-        memes += f', "{name}"'
-
 def make_meme(topString, bottomString, filename):
 
 	img = Image.open(os.path.join(INPUT_PATH, f"{filename}.jpg"))
@@ -77,5 +70,4 @@ def make_meme(topString, bottomString, filename):
 	draw.text(bottomTextPosition, bottomString, (255,255,255), font=font)
 
 	img.save(os.path.join(OUTPUT_PATH, f"{filename}.jpg"))
-
 

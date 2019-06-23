@@ -1,5 +1,6 @@
 import subprocess
 import os
+import datetime
 from pymongo import MongoClient, ReturnDocument
 from random import choice
 
@@ -102,6 +103,7 @@ class DB_Client:
             "nickname": nickname,
             "id": id_num,
             "archived": False,
+            "date": datetime.datetime.utcnow()
         }
         self.names.insert_one(post_data)
         return f"Successfully added nickname '{nickname}' to <@{id_num}>'s user bank."
@@ -144,13 +146,12 @@ class DB_Client:
     def clear_iq(self):
         self.iqs.drop()
 
-    def backup(self, db_path=os.path.join(os.path.dirname(__file__), 'database')):
-        self.client.fsync(lock=True);
-        subprocess.call(['git', '-C', db_path, 'add', '*'])
-        subprocess.call(['git', '-C', db_path, 'commit', '-m', 
-            f'{self.count_nicknames()} saved nicknames'])
-        self.client.unlock()
-        
+    def expire_names(self):
+        for nickname in db.names.find():
+            if datetime.datetime.utcnow() - nickname['date'] > datetime.timedelta(days=7):
+                nickname['archived'] = True
+                print(f"Nickname {nickname['nickname']} has expired")
+
 
 db = DB_Client()
 test_db = DB_Client(test=True)

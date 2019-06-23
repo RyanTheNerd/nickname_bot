@@ -1,5 +1,6 @@
 from explicit_eggs import explicit_eggs
 from discord import File
+import deepfrier
 import random
 import re
 
@@ -80,9 +81,15 @@ def simple_responses(message):
        if string in message.lower():
             return {"message":"I NEVER SAID THAT", "name": "GOD"}
 
-
-
+    # smh
+    if message.lower() == 'smh':
+        return {"file": File("resources/memes/smh.png", filename="smh.png")}
     
+    if 'number 15' in message.lower():
+        return {"message": """Number 15: Burger king foot lettuce. The last thing you'd want in your Burger King burger is someone's foot fungus. But as it turns out, that might be what you get. A 4channer uploaded a photo anonymously to the site showcasing his feet in a plastic bin of lettuce. With the statement: "This is the lettuce you eat at Burger King." Admittedly, he had shoes on.
+
+But that's even worse."""}
+
 
 async def run(client, message):
     if message.author.id == client.user.id:

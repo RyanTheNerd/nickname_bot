@@ -33,7 +33,7 @@ Action function combines a weapon and an action and calculates damage multiplier
 """
 
 class Weapon:
-    def __init__(self, name, multipler, a_an):
+    def __init__(self, name, multipler, a_an='a'):
         self.name = name
         self.multiplier = multiplier
         self.a_an = a_an
